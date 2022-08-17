@@ -1,8 +1,13 @@
+//import 'dart:developer';
+
+import 'package:aj_news/BookMark/bookMark.dart';
 import 'package:aj_news/homeView_folder/news_details.dart';
+import 'package:aj_news/services/services.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 
-void main () => runApp(const HomeView());
+
 
 class HomeView extends StatefulWidget {
   const HomeView({ Key? key }) : super(key: key);
@@ -12,13 +17,43 @@ class HomeView extends StatefulWidget {
 }
   int selectedIndex = 0;
 
+  // instance of a class is used to access 
+  //the properties of a class
+  NewsServices _newsServices = NewsServices();
+
+// = means to initialize
+  List<Map<String, dynamic>> articleList = [];
 
 class _HomeViewState extends State<HomeView> {
+  @override
+  //initstate is the first function that
+  // is called before the app builds
+
+  void initState() {
+    //call the function getNews
+   getArticle();
+    // getArticle is a function
+    super.initState();
+    setState(() {
+      
+    });
+  }
+
+  getArticle () async{
+   articleList = await _newsServices.getNews();
+   //articleList is a variable that holds our news data
+setState(() {
+  
+});
+
+  }
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        body: Column(
+        body: articleList.isEmpty? CircularProgressIndicator() : // if articleList
+        // is empty use circular progress idicator
+         Column(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -37,14 +72,27 @@ class _HomeViewState extends State<HomeView> {
                 ),
               ],
             ),
-             child: const Text(
-                        'Bulletin News',
-                         style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 39,
-                          fontWeight: FontWeight.bold,
-                         ),
-                      ),
+             child: Row(
+               children:[ const Text(
+                          'Bulletin News',
+                           style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 39,
+                            fontWeight: FontWeight.bold,
+                           ),
+                        ),
+                       const  SizedBox(width: 55,),
+                        GestureDetector(onTap: (){
+                         Navigator.push(context, MaterialPageRoute(builder: (context) => BookMark(),)); 
+                        },
+                          child: Container(
+                                  child: Icon(Icons.bookmark,
+                                  color: Colors.black,
+                                  ),
+                                ),
+                        ),
+                        ] 
+             ),
                       margin: const EdgeInsets.only(bottom: 15),
            ),
 
@@ -120,7 +168,7 @@ class _HomeViewState extends State<HomeView> {
                            
                            children: [
                               ...List.generate(8, (index) => GestureDetector(onTap: () {
-                                Navigator.push(context, MaterialPageRoute(builder: (context) => NewsDetails(),));
+                                Navigator.push(context, MaterialPageRoute(builder: (context) =>  NewsDetails(article:articleList [index],),));
                               },
                                 child: Stack(
                                     children: [
@@ -132,11 +180,55 @@ class _HomeViewState extends State<HomeView> {
                                        ),
                                        height: 200,
                                        width: 180,
-                                       child: Image.network('https://cdn.punchng.com/wp-content/uploads/2021/02/01101831/a3.jpg', 
+                                       child: CachedNetworkImage(
+                                        imageUrl:articleList[index]['media'], 
                                        fit: BoxFit.cover,),
-                                 ),
-                                 
-                                
+                                     ),
+                                     Container(
+                                      margin: const EdgeInsets.symmetric(horizontal: 10),
+                                      clipBehavior: Clip.hardEdge,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                        color: Colors.black.withOpacity(0.2),
+                                      ),
+                                      height: 200,
+                                      width: 180,                                     
+                                     ),
+                                     Positioned(
+                                      left: 8,
+                                      bottom: 8,
+                                      top: 18,
+                                       child: Container(
+                                        width: 180,
+                                        padding: const EdgeInsets.all(10),
+                                        child: 
+                                       Column(
+                                        mainAxisAlignment: MainAxisAlignment.end,
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                           Text(articleList[index]['title'],
+                                          style:  const TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                            overflow: TextOverflow.ellipsis
+                                          ),
+                                          maxLines: 2,
+                                          ),
+                                          const SizedBox(height: 12,),
+                                          // for date formatting install intl package
+                                          Text(articleList[index]['published_date'],
+                                          style: const TextStyle(
+                                           color: Colors.white,
+                                           fontWeight: FontWeight.normal,
+                                           fontSize: 15
+                                          ),
+                                          ),
+                                        ],
+                                      ),
+                                       ),
+                                     )
+
                                     ],
                                   ),
                               ),
@@ -149,30 +241,37 @@ class _HomeViewState extends State<HomeView> {
                     SliverToBoxAdapter(
                       child: Column(
                         children: [
-                         ...List.generate(15, (index) => GestureDetector( onTap: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) =>const NewsDetails())
+                         ...List.generate(15, (index) => Container(
+                         margin: const EdgeInsets.symmetric(vertical: 8),
+                         height: 120,
+                         width: double.infinity,
+                         child: InkWell(onTap: () {
+                          Navigator.push(context, MaterialPageRoute(
+                            builder: (context) => NewsDetails(article: articleList[index]),
+                          ),
                           );
                          },
-                           child: Container(
-                           margin: const EdgeInsets.symmetric(vertical: 8),
-                           height: 120,
-                           width: double.infinity,
                            child: Row(
                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                              children: [
                                Column(
-                                 children: const [
-                                   Text('Headline',
-                                   style: TextStyle(
-                                     fontSize: 13,
-                                     fontWeight: FontWeight.bold,
-                                     color: Colors.black
+                                 children: [
+                                   Container(
+                                    width: MediaQuery.of(context).size.width/ 2,
+                                     child: Text( articleList[index]['title'],
+                                     style: const TextStyle(
+                                      overflow: TextOverflow.ellipsis,
+                                       fontSize: 20,
+                                       fontWeight: FontWeight.bold,
+                                       color: Colors.black
+                                     ),
+                                     maxLines: 3,
+                                     ),
                                    ),
-                                   ),
-                                   SizedBox(height: 30),
-                                   Text('time',
+                                  const SizedBox(height: 30),
+                                   Text(articleList[index]['published_date'],
                                    style: TextStyle(
-                                     fontSize: 12,
+                                     fontSize: 15,
                                      fontWeight: FontWeight.normal,
                                      color: Colors.grey
                                    ),
@@ -186,13 +285,14 @@ class _HomeViewState extends State<HomeView> {
                                  decoration: BoxDecoration(
                                    borderRadius: BorderRadius.circular(10),
                                  ),
-                                 child: Image.network('https://cdn.punchng.com/wp-content/uploads/2021/02/01101831/a3.jpg',
-                                 fit: BoxFit.fill,
+                                 child: CachedNetworkImage(
+                                  imageUrl: articleList[index]['media'],
+                                 fit: BoxFit.cover,
                                  ),
                                  )
-                             ],)
+                             ],),
+                         )
                        
-                           ),
                          ),
                        )
                 
@@ -206,7 +306,6 @@ class _HomeViewState extends State<HomeView> {
           ],
         ),
       ),
-
     );
   }
 }

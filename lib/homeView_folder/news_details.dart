@@ -1,8 +1,16 @@
+
+import 'package:aj_news/BookMark/bookmark_details.dart';
+import 'package:aj_news/homeView_folder/reading.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
+// stateless/stateful widget is used when there is a view
 class NewsDetails extends StatelessWidget {
-  const NewsDetails({ Key? key }) : super(key: key);
+  NewsDetails({ Key? key, required this.article }) : super(key: key);
 
+  Map<String, dynamic> article;
+
+//Map< String, dynamic> article = {}; this is used to pass a string
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -46,43 +54,90 @@ class NewsDetails extends StatelessWidget {
               Expanded(
                 child: ListView(
                   children: [
-                       Container(
+                  Stack(
+                   children:[
+                   Container(
                   height: 250,
                   width: double.infinity,
-                  child: Image.network('https://cdn.punchng.com/wp-content/uploads/2021/02/01101831/a3.jpg',
-                  fit: BoxFit.fill,
+                  child: CachedNetworkImage(
+                  imageUrl: article ['media'],
+                  fit: BoxFit.cover,
                   ),
                   clipBehavior: Clip.hardEdge,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(15),
                   ),
                 ),
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 10),
+                    clipBehavior: Clip.hardEdge,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(15),
+                         color: Colors.black.withOpacity(0.1),
+                          ),
+                             height: 250,
+                             width: double.infinity,                                     
+                           ),
+                           Positioned(
+                            top: 10,
+                            right: 0,
+                            child: GestureDetector(onTap: () {
+                              //supposing bookmark button was put in homeview page, 
+                              //then we would have written 
+                              //BookMarkDetails.bookMarkList.add(articleList[index])
+                              BookMarkDetails.bookMarkList.add(
+                                article
+                              );
+                              print('THIS IS $article');
+                       
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('bookmarked')));
+                            },
+                              child: Container(
+                                child: Icon(Icons.bookmark,
+                                color: Colors.white,
+                                ),
+                              ),
+                            ),
+                            ),
+                         ], 
+                       ),
                 const SizedBox(height: 20,),
-                const Text(
-                  '''What is Lorem Ipsum?
-Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
-
-Why do we use it?
-It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for 'lorem ipsum' will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).
-
-
-Where does it come from?
-Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32''',
-                  style: TextStyle(
+                 Text(article['summary'],
+                  style: const TextStyle(
                     fontWeight: FontWeight.normal,
                     fontSize: 20,
                   ),
                 ), 
                 const SizedBox(height: 60),
+
+                Center(
+                      child: ElevatedButton(onPressed: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => Reading(articleLink: article['link'],)));
+                      },
+                       child: const Text(
+                        'Read',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 30,
+                        ),
+                       ),
+                       style: ElevatedButton.styleFrom(
+                        padding: EdgeInsets.symmetric(horizontal: 35, vertical: 15),
+                        primary: Colors.amber,
+                       ),
+                       ),
+                    ),
+                    const SizedBox(height: 20),
+                     
+                  ],
+                ),
+              ),
             
                   ],
                 ),
               ),
-           ],
           ),
-        ),
-        
-      ),
-    );
+        );
   }
 }
